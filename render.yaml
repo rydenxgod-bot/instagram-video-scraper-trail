@@ -3,12 +3,10 @@ services:
     name: insta-video-api
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npx puppeteer browsers install chrome
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
-      - key: PUPPETEER_SKIP_DOWNLOAD
-        value: "true"

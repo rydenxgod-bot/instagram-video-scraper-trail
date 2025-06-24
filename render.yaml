@@ -1,12 +1,13 @@
 services:
   - type: web
-    name: insta-video-api
+    name: instagram-video-scraper
     env: node
-    plan: free
-    buildCommand: npm install && npx puppeteer browsers install chrome
+    buildCommand: |
+      npm install
+      apt-get update && apt-get install -y chromium
     startCommand: npm start
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 3000
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: "true"
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium

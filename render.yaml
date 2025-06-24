@@ -4,7 +4,8 @@ services:
     env: node
     buildCommand: |
       npm install
-      apt-get update && apt-get install -y chromium
+      apt-get update
+      apt-get install -y chromium
     startCommand: npm start
     envVars:
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD

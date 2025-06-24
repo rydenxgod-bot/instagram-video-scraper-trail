@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core'); // Changed to puppeteer-core
 const NodeCache = require("node-cache");
 const { CustomError } = require('../lib/errors');
 
@@ -45,12 +45,25 @@ const browserOptions = {
   headless: "new",
   defaultViewport: { width: 100, height: 100 },
   args: minimalArgs,
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium', // Added executable path
+  ignoreHTTPSErrors: true, // Added to handle HTTPS errors
+  timeout: 30000 // Added timeout
 };
 
 const createScraperMiddleware = () => {
   const middleware = async (req, res, next) => {
     if (!middleware.browser) {
-      middleware.browser = await puppeteer.launch(browserOptions);
+      try {
+        console.log('Launching browser with options:', {
+          ...browserOptions,
+          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
+        });
+        middleware.browser = await puppeteer.launch(browserOptions);
+        console.log('Browser launched successfully');
+      } catch (error) {
+        console.error('Browser launch error:', error);
+        return next(new CustomError("Browser initialization failed", 500));
+      }
     }
     req.scraper = middleware;
     next();
@@ -135,6 +148,29 @@ const createScraperMiddleware = () => {
 
     return null;
   }
+
+  // Add cleanup function for browser
+  middleware.cleanup = async () => {
+    if (middleware.browser) {
+      try {
+        await middleware.browser.close();
+        middleware.browser = null;
+      } catch (error) {
+        console.error('Error closing browser:', error);
+      }
+    }
+  };
+
+  // Handle process termination
+  process.on('SIGTERM', async () => {
+    await middleware.cleanup();
+    process.exit(0);
+  });
+
+  process.on('SIGINT', async () => {
+    await middleware.cleanup();
+    process.exit(0);
+  });
 
   return middleware;
 };

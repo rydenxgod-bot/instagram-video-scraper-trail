@@ -10,3 +10,5 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
